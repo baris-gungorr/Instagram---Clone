@@ -19,8 +19,7 @@ class UploadActivity : AppCompatActivity() {
     fun upload(view: View) {
 
     }
-    fun selectimage(view: View) {
-
+    fun selectimage(view:View) {
 
     }
 }
