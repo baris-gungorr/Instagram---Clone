@@ -5,7 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
-import com.barisgungorr.FeedActivity
+import com.barisgungorr.view.FeedActivity
 import com.barisgungorr.instagramclone.databinding.ActivityMainBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
@@ -23,7 +23,7 @@ class MainActivity : AppCompatActivity() {
 
         val currentUser = auth.currentUser  // burada eğer kullanıcı daha önce giriş yaptı ise direkt ana ekrandan başlatıyoruz
         if(currentUser != null) {
-            val intent = Intent(this,FeedActivity::class.java)
+            val intent = Intent(this, FeedActivity::class.java)
             startActivity(intent)
             finish()
 
@@ -42,7 +42,7 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this,"Welcome!${email}",Toast.LENGTH_LONG).show()
 
 
-                val intent = Intent(this@MainActivity,FeedActivity::class.java)
+                val intent = Intent(this@MainActivity, FeedActivity::class.java)
                 startActivity(intent)
                 finish()
             }.addOnFailureListener {
@@ -61,7 +61,7 @@ class MainActivity : AppCompatActivity() {
         }else {  // boş mu ? - hayır  - // bu işlemi aSenkron yapmamız lazım çünkü cpu ile değil kullanıcı internet gücü ile yapılacak
 
             auth.createUserWithEmailAndPassword(email, password).addOnSuccessListener { // succes
-                val intent = Intent(this@MainActivity,FeedActivity::class.java)
+                val intent = Intent(this@MainActivity, FeedActivity::class.java)
                 startActivity(intent)
                 finish()
 

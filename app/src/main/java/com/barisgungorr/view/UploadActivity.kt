@@ -1,4 +1,4 @@
-package com.barisgungorr
+package com.barisgungorr.view
 
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -91,6 +91,28 @@ class UploadActivity : AppCompatActivity() {
         if (selectedPicture != null) {
             imageReference.putFile(selectedPicture!!).addOnSuccessListener {
             //dowland url -> firestore
+                val uploadPictureReference = storage.reference.child("images").child(imageName)
+                uploadPictureReference.downloadUrl.addOnSuccessListener {
+                    val dowlandUrl = it.toString()
+
+                    if (auth.currentUser != null) {
+
+                        val postMap = hashMapOf<String,Any>()
+                        postMap.put("dowlandUrl",dowlandUrl)
+                        postMap.put("userEmail",auth.currentUser!!.email!!)
+                        postMap.put("comment",binding.commentText.text.toString())
+                        postMap.put("date",com.google.firebase.Timestamp.now())
+
+                        firestore.collection("Post").add(postMap).addOnSuccessListener {
+                            finish()
+                        }.addOnFailureListener {
+                            Toast.makeText(this@UploadActivity,it.localizedMessage,Toast.LENGTH_LONG).show()
+                        }
+
+                    }
+
+                }
+                Toast.makeText(this,"SAVED",Toast.LENGTH_LONG).show()
 
             }.addOnFailureListener {
                 Toast.makeText(this,it.localizedMessage,Toast.LENGTH_LONG).show()

@@ -21,10 +21,10 @@
         android:theme="@style/Theme.InstagramClone"
         tools:targetApi="31">
         <activity
-            android:name="com.barisgungorr.UploadActivity"
+            android:name="com.barisgungorr.view.UploadActivity"
             android:exported="false" />
         <activity
-            android:name="com.barisgungorr.FeedActivity"
+            android:name="com.barisgungorr.view.FeedActivity"
             android:exported="false" />
         <activity
             android:name=".MainActivity"
