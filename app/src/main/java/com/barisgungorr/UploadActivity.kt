@@ -25,6 +25,7 @@ import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.ktx.storage
 import java.io.ByteArrayOutputStream
+import java.util.UUID
 
 class UploadActivity : AppCompatActivity() {
     private lateinit var binding: ActivityUploadBinding
@@ -81,6 +82,22 @@ class UploadActivity : AppCompatActivity() {
     }
 
     fun upload(view: View) {
+        val uuid = UUID.randomUUID()
+        val imageName = "$uuid.jpg"
+
+      val reference = storage.reference
+       val imageReference = reference.child("images").child(imageName)  // iamges diye klasör aç jpg koy
+
+        if (selectedPicture != null) {
+            imageReference.putFile(selectedPicture!!).addOnSuccessListener {
+            //dowland url -> firestore
+
+            }.addOnFailureListener {
+                Toast.makeText(this,it.localizedMessage,Toast.LENGTH_LONG).show()
+            }
+        }
+
+
         if (selectedBitmap != null) {
             val smallBitmap = makeSmallerBitmap(selectedBitmap!!, 300)
             val outputStream = ByteArrayOutputStream()
