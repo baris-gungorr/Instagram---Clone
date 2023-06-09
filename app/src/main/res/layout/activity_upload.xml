@@ -11,7 +11,7 @@
         style="@style/Widget.AppCompat.Button"
         android:layout_width="123dp"
         android:layout_height="52dp"
-        android:layout_marginTop="104dp"
+        android:layout_marginTop="68dp"
         android:onClick="upload"
         android:text="Upload"
         android:textSize="16sp"

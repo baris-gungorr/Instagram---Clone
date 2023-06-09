@@ -21,31 +21,30 @@ class MainActivity : AppCompatActivity() {
         val view = binding.root
         setContentView(view)
 
-        val currentUser = auth.currentUser  // burada eğer kullanıcı daha önce giriş yaptı ise direkt ana ekrandan başlatıyoruz
-        if(currentUser != null) {
+        val currentUser = auth.currentUser  // Eğer kullanıcı daha önce giriş yaptı ise direkt feed'den başlatıyoruz
+
+        if(currentUser != null) {  //Güncel kullanıcı yok ise feed activity'e git diyoruz
             val intent = Intent(this, FeedActivity::class.java)
             startActivity(intent)
             finish()
-
         }
-
     }
     fun signinClick(view: View) {
         val email = binding.editTextEmail.text.toString()
         val password = binding.editTextPassword.text.toString()
 
-        if (email.equals("") || (password.equals(""))) {   // boş mu ? evet
-            Toast.makeText(this, "Enter email and password!", Toast.LENGTH_LONG).show()
+        if (email.equals("") || (password.equals(""))) {
+            Toast.makeText(this, "Please enter email and password!", Toast.LENGTH_LONG).show() // boş ise
         }else{
-            auth.signInWithEmailAndPassword(email, password).addOnSuccessListener {
+            auth.signInWithEmailAndPassword(email, password).addOnSuccessListener { // Boş değilse giriş yap
 
-                Toast.makeText(this,"Welcome!${email}",Toast.LENGTH_LONG).show()
-
+                Toast.makeText(this,"WElCOME!${email}",Toast.LENGTH_LONG).show()
 
                 val intent = Intent(this@MainActivity, FeedActivity::class.java)
                 startActivity(intent)
                 finish()
-            }.addOnFailureListener {
+
+            }.addOnFailureListener { // Hata olur ise
                 Toast.makeText(this@MainActivity,it.localizedMessage,Toast.LENGTH_LONG).show()
 
             }
@@ -55,24 +54,22 @@ class MainActivity : AppCompatActivity() {
         val email = binding.editTextEmail.text.toString()
         val password = binding.editTextPassword.text.toString()
 
-        if (email.equals("") || (password.equals(""))) {   // boş mu ? evet
-        Toast.makeText(this,"Enter email and password!",Toast.LENGTH_LONG).show()
+        if (email.equals("") || (password.equals(""))) {   // e-mail ve passWord almak boş mu değil mi kontrolü yapıyoruz
+        Toast.makeText(this,"Please enter email and password!",Toast.LENGTH_LONG).show()
 
-        }else {  // boş mu ? - hayır  - // bu işlemi aSenkron yapmamız lazım çünkü cpu ile değil kullanıcı internet gücü ile yapılacak
+        }else {  // boş değilse bu işlemi aSenkron yapmamız lazım çünkü cpu ile değil kullanıcı internet gücü ile yapılacak
 
-            auth.createUserWithEmailAndPassword(email, password).addOnSuccessListener { // succes
+            auth.createUserWithEmailAndPassword(email, password).addOnSuccessListener { //kayıt başarılı olursa intent yapılacak
+                // succes
                 val intent = Intent(this@MainActivity, FeedActivity::class.java)
                 startActivity(intent)
                 finish()
 
-            }.addOnFailureListener { // failed
+            }.addOnFailureListener { // başarısız bir giriş olursa kullanıcının anlayacağı dilden hata mesajını yazdır
 
-                Toast.makeText(this@MainActivity,it.localizedMessage,Toast.LENGTH_LONG).show() // eksik bir giriş yapıldığında örn: şifreyi 6 haneden az yapmak
+                Toast.makeText(this@MainActivity,it.localizedMessage,Toast.LENGTH_LONG).show()
+                 //  Örn: şifreyi 6 haneden az yapmak
             }
-
-
         }
-
-
     }
 }

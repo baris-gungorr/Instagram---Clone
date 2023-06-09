@@ -4,6 +4,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.net.Uri
+import android.os.Build.VERSION_CODES.S
 import android.os.Bundle
 import android.provider.MediaStore
 import android.view.View
@@ -17,6 +18,7 @@ import androidx.core.content.ContextCompat
 
 import com.barisgungorr.instagramclone.databinding.ActivityUploadBinding
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -33,10 +35,10 @@ class UploadActivity : AppCompatActivity() {
     private lateinit var permissionLauncher: ActivityResultLauncher<String>
     var selectedPicture: Uri? = null
     private var selectedBitmap: Bitmap? = null
+
     private lateinit var auth : FirebaseAuth
     private lateinit var firestore : FirebaseFirestore
     private lateinit var storage : FirebaseStorage
-
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -44,6 +46,7 @@ class UploadActivity : AppCompatActivity() {
         binding = ActivityUploadBinding.inflate(layoutInflater)
         val view = binding.root
         setContentView(view)
+
         registerLauncher()
 
         auth = Firebase.auth
@@ -52,58 +55,64 @@ class UploadActivity : AppCompatActivity() {
     }
 
     private fun registerLauncher() {
-        activityResultLauncher =
-            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        activityResultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
                 if (result.resultCode == RESULT_OK) {
                     val intentFromResult = result.data
-                    if (intentFromResult != null) {
-                        selectedPicture = intentFromResult.data
+                    if (intentFromResult != null) { selectedPicture = intentFromResult.data
                         selectedPicture?.let {
+
                             binding.imageView.setImageURI(it)
                             binding.imageView.scaleType = ImageView.ScaleType.CENTER_INSIDE
+                            /*
+                            Özetlemek gerekirse, URI'ler, Android uygulamalarında dosyaları veya kaynakları tanımlamak
+                            ve erişmek için kullanılan birer tanımlayıcılardır.
+                             Galeri gibi uygulamalarda, kullanıcının izin verdiği dosyalara erişmek için URI'leri kullanırız.
+                             */
 
                         }
                     }
                 }
             }
-
-        permissionLauncher =
-            registerForActivityResult(ActivityResultContracts.RequestPermission()) { result ->
+        permissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { result ->
                 if (result) {
                     // permission granted
-                    val intentToGallery =
-                        Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+                    val intentToGallery = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
                     activityResultLauncher.launch(intentToGallery)
                 } else {
-                    Toast.makeText(this@UploadActivity, "Permission needed!", Toast.LENGTH_LONG)
-                        .show()
+                    Toast.makeText(this@UploadActivity, "Permission needed!", Toast.LENGTH_LONG).show()
                 }
             }
     }
 
     fun upload(view: View) {
-        val uuid = UUID.randomUUID()
+        val uuid = UUID.randomUUID() // random bir rakam veriyor dosyaya
         val imageName = "$uuid.jpg"
 
-      val reference = storage.reference
+      val reference = storage.reference  //storage depo işlemleri
        val imageReference = reference.child("images").child(imageName)  // iamges diye klasör aç jpg koy
 
         if (selectedPicture != null) {
-            imageReference.putFile(selectedPicture!!).addOnSuccessListener {
+            imageReference.putFile(selectedPicture!!).addOnSuccessListener {  // url'yi fireStore'a kaydediyoruz
             //dowland url -> firestore
-                val uploadPictureReference = storage.reference.child("images").child(imageName)
+
+                val uploadPictureReference = storage.reference.child("images").child(imageName) // veritabanı kayıt işlemleri
                 uploadPictureReference.downloadUrl.addOnSuccessListener {
+
                     val dowlandUrl = it.toString()
 
                     if (auth.currentUser != null) {
 
-                        val postMap = hashMapOf<String,Any>()
-                        postMap.put("dowlandUrl",dowlandUrl)
-                        postMap.put("userEmail",auth.currentUser!!.email!!)
-                        postMap.put("comment",binding.commentText.text.toString())
-                        postMap.put("date",com.google.firebase.Timestamp.now())
+                        val postMap = hashMapOf<String,Any>() // Anahtar kelimemiz string değer ise Any türünde olacak
 
-                        firestore.collection("Post").add(postMap).addOnSuccessListener {
+                        if(auth.currentUser != null) {
+
+                            postMap.put("dowlandUrl",dowlandUrl)
+                            postMap.put("userEmail",auth.currentUser!!.email!!)
+                            postMap.put("comment",binding.commentText.text.toString())
+                            postMap.put("date",Timestamp.now())
+                        }
+
+                        firestore.collection("Posts").add(postMap).addOnSuccessListener {
                             finish()
                         }.addOnFailureListener {
                             Toast.makeText(this@UploadActivity,it.localizedMessage,Toast.LENGTH_LONG).show()
@@ -135,28 +144,19 @@ class UploadActivity : AppCompatActivity() {
     }
 
     fun selectImage(view: View) {
-        if (ContextCompat.checkSelfPermission(
-                this,
-                android.Manifest.permission.READ_EXTERNAL_STORAGE
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            if (ActivityCompat.shouldShowRequestPermissionRationale(
-                    this,
-                    android.Manifest.permission.READ_EXTERNAL_STORAGE
-                )
-            ) {
-                Snackbar.make(view, "Permission needed for gallery", Snackbar.LENGTH_INDEFINITE)
-                    .setAction("Give permission") {
-                        //request permmision
-                        permissionLauncher.launch(android.Manifest.permission.READ_EXTERNAL_STORAGE)
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, android.Manifest.permission.READ_EXTERNAL_STORAGE)) {
+                Snackbar.make(view, "Galerin için izne ihtiyacım var ! ", Snackbar.LENGTH_INDEFINITE).setAction("Give permission") {
+
+                        permissionLauncher.launch(android.Manifest.permission.READ_EXTERNAL_STORAGE) // Çıkan butona bastığımızda ne olacak
                     }.show()
             } else {
                 //request permission
                 permissionLauncher.launch(android.Manifest.permission.READ_EXTERNAL_STORAGE)
             }
         } else {
-            val intentToGallery =
-                Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+            val intentToGallery = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI) // izni aldıysak
             //start activity for result
             activityResultLauncher.launch(intentToGallery)
         }
